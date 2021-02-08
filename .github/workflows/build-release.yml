@@ -1,0 +1,40 @@
+on: [push, pull_request]
+jobs:
+  build-and-release:
+     strategy:
+      matrix:
+        go-version: [1.14.x, 1.15.x]
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+    - name: Install Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: ${{ matrix.go-version }}
+      
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Build
+      run: go build -o release
+      
+    - name: Create release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: "${{ github.ref }}-${{ matrix.os }}-${{ matrix.go-version }}"
+        prerelease: true
+        draft: true
+      
+    - name: Upload Asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./release
+        asset_name: "release-${{ matrix.os }}-${{ matrix.go-version }}"
+        asset_content_type: application/executable
