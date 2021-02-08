@@ -24,6 +24,8 @@ jobs:
   create-release:
     needs: [test]
     runs-on: ubuntu-latest
+    outputs:
+      release-url: ${{ steps.create_release.outputs.upload_url }}
     steps:
       - name: Create release
         id: create_release
@@ -53,7 +55,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
         with:
-          upload_url: ${{ jobs.create-release.steps.create_release.outputs.upload_url }}
+          upload_url: ${{ needs.create-release.output.release-url }}
           asset_path: ./release
           asset_name: "release-${{ matrix.os }}-${{ matrix.go-version }}"
           asset_content_type: application/executable
