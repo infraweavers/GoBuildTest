@@ -1,19 +1,6 @@
 on: [push, pull_request]
 name: Test
 jobs:
-  create_release:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Create release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
-        with:
-          tag_name: ${{ github.ref }}
-          release_name: ${{ github.ref }}
-          prerelease: true
-          draft: true
   test:
     strategy:
       matrix:
@@ -25,12 +12,27 @@ jobs:
       uses: actions/setup-go@v2
       with:
         go-version: ${{ matrix.go-version }}
+      
     - name: Checkout code
       uses: actions/checkout@v2
+      
     - name: Test
       run: go test ./...
+      
     - name: Build
       run: go build -o release
+      
+    - name: Create release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: ${{ github.ref }}
+        prerelease: true
+        draft: true
+      
     - name: Upload Asset
       uses: actions/upload-release-asset@v1
       env:
@@ -38,5 +40,6 @@ jobs:
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
         asset_path: ./release
-        asset_name: "release-${{matrix.os}}-${{ matrix.go-version }}"
+        asset_name: "release-${{ matrix.os }}-${{ matrix.go-version }}"
         asset_content_type: application/executable
+        
