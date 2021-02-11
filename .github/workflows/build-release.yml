@@ -1,4 +1,13 @@
 on: [push, pull_request]
+
+env:
+  GOPATH: ${{ github.workspace }}
+  GOBIN: ${{ github.workspace }}/bin
+
+defaults:
+  run:
+    working-directory: "${{ env.GOPATH }}/src/gobuildtest"
+
 jobs:
   build-and-release:
     strategy:
@@ -14,6 +23,8 @@ jobs:
       
     - name: Checkout code
       uses: actions/checkout@v2
+      with:
+        path: "{{ env.GOPATH }}/src/gobuildtest"
 
     - name: Debug
       run: |
