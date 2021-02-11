@@ -30,7 +30,6 @@ jobs:
       
     - name: Debug
       run: |
-        pwd
         echo ${GOPATH}
         echo ${GOROOT}
         echo ${GOCACHE}
