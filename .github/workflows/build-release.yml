@@ -15,6 +15,12 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
 
+    - name: Debug
+      run: |
+        pwd
+        echo ${GOPATH}
+        echo ${GOROOT}
+        
     - name: Build
       run: go build -o release
       
