@@ -17,16 +17,17 @@ jobs:
         working-directory: "${{ env.GOPATH }}/src/gobuildtest"
         
     steps:
-    - name: Install Go
-      uses: actions/setup-go@v2
-      with:
-        go-version: ${{ matrix.go-version }}
-      
+
     - name: Checkout code
       uses: actions/checkout@v2
       with:
         path: "{{ env.GOPATH }}/src/gobuildtest"
 
+    - name: Install Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: ${{ matrix.go-version }}
+      
     - name: Debug
       run: |
         pwd
