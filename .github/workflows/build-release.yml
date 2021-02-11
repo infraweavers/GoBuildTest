@@ -1,13 +1,5 @@
 on: [push, pull_request]
 
-env:
-  GOPATH: ${{ github.workspace }}
-  GOBIN: ${{ github.workspace }}/bin
-
-defaults:
-  run:
-    working-directory: "${{ env.GOPATH }}/src/gobuildtest"
-
 jobs:
   build-and-release:
     strategy:
@@ -15,6 +7,15 @@ jobs:
         go-version: [1.14.x, 1.15.x]
         os: [ubuntu-latest, windows-latest]
     runs-on: ${{ matrix.os }}
+
+    env:
+      GOPATH: ${{ github.workspace }}
+      GOBIN: ${{ github.workspace }}/bin
+
+    defaults:
+      run:
+        working-directory: "${{ env.GOPATH }}/src/gobuildtest"
+        
     steps:
     - name: Install Go
       uses: actions/setup-go@v2
