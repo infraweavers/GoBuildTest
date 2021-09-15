@@ -25,8 +25,8 @@ jobs:
       - id: get-revision
         run: |
           $firstCommitSha = "1d7353dbbab0c42645a02dd40613226dcd6cdbc8"
-          $lastCommitSha = ((Invoke-WebRequest -uri https://api.github.com/repos/infraweavers/gobuildtest/git/refs/heads/master -UseBasicParsing).Content | ConvertFrom-Json).object.sha
-          $response = Invoke-WebRequest -uri https://api.github.com/repos/infraweavers/gobuildtest/compare/${firstCommitSha}...${lastCommitSha} -UseBasicParsing
+          $lastCommitSha = ((Invoke-WebRequest -uri https://api.github.com/repos/infraweavers/GoBuildTest/git/refs/heads/master -UseBasicParsing).Content | ConvertFrom-Json).object.sha
+          $response = Invoke-WebRequest -uri https://api.github.com/repos/infraweavers/GoBuildTest/compare/${firstCommitSha}...${lastCommitSha} -UseBasicParsing
           echo "::set-output name=revision::$( ($response.Content | ConvertFrom-Json).total_commits )"
 
       - id: get-minor-version
@@ -123,3 +123,38 @@ jobs:
           
         env:
           GITHUB_TOKEN: ${{ github.token }}
+
+  upload-binary-release-assets:
+
+    strategy:
+      matrix:
+        go-version: [1.17.x]
+        os: [linux]
+        arch: [amd64]
+
+    runs-on: ubuntu-latest
+
+    needs: [get-commit-sha,get-version-number,make-release]
+
+    steps:
+
+      - id: download-release-binary
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: actions/download-artifact@v2
+        with:
+          name: "gobuildtest-${{ matrix.os }}-${{ matrix.arch }}-Go${{ matrix.go-version }}-${{needs.get-version-number.outputs.version}}-BIN"
+
+      - id: create-release-archive
+        if: startsWith(github.ref, 'refs/tags/')
+        run: tar cvzf ./gobuildtest-${{ matrix.os }}-${{ matrix.arch }}-Go${{ matrix.go-version }}-${{needs.get-version-number.outputs.version}}-BIN.tar.gz ./*
+
+      - id: upload-binary-release-asset
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          upload_url: ${{ needs.make-release.outputs.release-upload-url }}
+          asset_path: "./gobuildtest-${{ matrix.os }}-${{ matrix.arch }}-Go${{ matrix.go-version }}-${{needs.get-version-number.outputs.version}}-BIN.tar.gz"
+          asset_name: "gobuildtest-${{ matrix.os }}-${{ matrix.arch }}-Go${{ matrix.go-version }}-${{needs.get-version-number.outputs.version}}-BIN.tar.gz"
+          asset_content_type: application/octet-stream
