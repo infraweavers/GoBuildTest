@@ -20,7 +20,7 @@ jobs:
           $firstCommitSha = "1d7353dbbab0c42645a02dd40613226dcd6cdbc8"
           $lastCommitSha = ((Invoke-WebRequest -uri https://api.github.com/repos/infraweavers/GoBuildTest/git/refs/heads/main -UseBasicParsing).Content | ConvertFrom-Json).object.sha
           $response = Invoke-WebRequest -uri https://api.github.com/repos/infraweavers/GoBuildTest/compare/${firstCommitSha}...${lastCommitSha} -UseBasicParsing
-          echo "::set-output name=revision::$( ($response.Content | ConvertFrom-Json).total_commits )
+          echo "::set-output name=revision::$( ($response.Content | ConvertFrom-Json).total_commits )"
 
       - id: get-minor-version
         run: echo "::set-output name=minor::1"
