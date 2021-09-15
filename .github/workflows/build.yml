@@ -1,0 +1,60 @@
+name: Build, Package and Optionally Release
+
+on:
+  push:
+    branches:
+      - "*"
+    tags:
+      - "*"
+
+jobs:
+
+  build-release:
+  
+    strategy:
+      matrix:
+        go-version: [1.17.x]
+        os: [linux]
+        arch: [amd64]
+
+    runs-on: ubuntu-latest
+    
+    env:
+        SRCPATH: ${{ github.workspace }}/go/src/gobuildtest
+
+    steps:
+
+      - id: install-go
+        uses: actions/setup-go@v2
+        with:
+          go-version: ${{ matrix.go-version }}
+            
+      - id: checkout-code
+        uses: actions/checkout@v2
+        with:
+          path: ${{ env.SRCPATH }}
+
+      - id: dependencies-and-build
+        run: |
+          os=${{ matrix.os }}
+          arch=${{ matrix.arch }}
+          goversion=${{ matrix.go-version }}
+          echo "Building $os-$arch-$goversion"
+          
+          suffix=$([ "$os" == "windows" ] && echo ".exe" || echo "")
+          mkdir -p ./release/gobuildtest-${{ matrix.os }}-${{ matrix.arch }}-Go${{ matrix.go-version }}-BIN
+          cp ${{ env.SRCPATH }}/configuration.json ${{ env.SRCPATH }}/LICENSE ${{ env.SRCPATH }}/server.crt ${{ env.SRCPATH }}/server.key ${{ env.SRCPATH }}/README.md ${{ env.SRCPATH }}/cacert.pem ./release/gobuildtest-${{ matrix.os }}-${{ matrix.arch }}-Go${{ matrix.go-version }}-BIN/.
+          
+          pushd ${{ env.SRCPATH }}
+          
+          GO111MODULE=on GOOS=$os GOARCH=$arch go get ./...
+          GO111MODULE=on GOOS=$os GOARCH=$arch go build -o ${{ env.SRCPATH }}/gobuildtest$suffix
+          popd
+          cp ${{ env.SRCPATH }}/gobuildtest$suffix ./release/gobuildtest-${{ matrix.os }}-${{ matrix.arch }}-Go${{ matrix.go-version }}-BIN/gobuildtest$suffix
+
+      - id: upload-builds
+        uses: actions/upload-artifact@v2
+        with:
+          name: "gobuildtest-${{ matrix.os }}-${{ matrix.arch }}-Go${{ matrix.go-version }}-BIN"
+          path: release/gobuildtest-${{ matrix.os }}-${{ matrix.arch }}-Go${{ matrix.go-version }}-BIN/
+          if-no-files-found: error
