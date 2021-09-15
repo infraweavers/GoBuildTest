@@ -1,0 +1,43 @@
+name: Make Tag For Release
+
+on:
+  workflow_dispatch
+  
+jobs:
+
+  get-release-version-number:
+
+    runs-on: windows-latest
+
+    outputs:
+      revision: ${{ steps.get-revision.outputs.revision }}
+      minor: ${{ steps.get-minor-version.outputs.minor }}
+      major: ${{ steps.get-major-version.outputs.major }}
+
+    steps:
+      - id: get-revision
+        run: |
+          $firstCommitSha = "1d7353dbbab0c42645a02dd40613226dcd6cdbc8"
+          $lastCommitSha = ((Invoke-WebRequest -uri https://api.github.com/repos/infraweavers/GoBuildTest/git/refs/heads/main -UseBasicParsing).Content | ConvertFrom-Json).object.sha
+          $response = Invoke-WebRequest -uri https://api.github.com/repos/infraweavers/GoBuildTest/compare/${firstCommitSha}...${lastCommitSha} -UseBasicParsing
+          echo "::set-output name=revision::$( ($response.Content | ConvertFrom-Json).total_commits )
+
+      - id: get-minor-version
+        run: echo "::set-output name=minor::1"
+
+      - id: get-major-version
+        run: echo "::set-output name=major::0"
+            
+  tag-latest-revision:
+  
+    needs: get-release-version-number
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - id: make-tag
+        uses: tvdias/github-tagger@v0.0.1
+        with:
+          repo-token: "${{ secrets.INFRAWEAVERS_ACTION_PAT }}"
+          tag: "${{needs.get-release-version-number.outputs.major}}.${{needs.get-release-version-number.outputs.minor}}.${{needs.get-release-version-number.outputs.revision}}"
+          
