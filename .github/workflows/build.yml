@@ -9,6 +9,49 @@ on:
 
 jobs:
 
+  get-version-number:
+
+    runs-on: windows-latest
+
+    needs: get-commit-sha
+
+    outputs:
+      revision: ${{ steps.get-revision.outputs.revision }}
+      minor: ${{ steps.get-minor-version.outputs.minor }}
+      major: ${{ steps.get-major-version.outputs.major }}
+      version: ${{ steps.get-version.outputs.version }}
+
+    steps:
+      - id: get-revision
+        run: |
+          $firstCommitSha = "1d7353dbbab0c42645a02dd40613226dcd6cdbc8"
+          $lastCommitSha = ((Invoke-WebRequest -uri https://api.github.com/repos/infraweavers/gobuildtest/git/refs/heads/master -UseBasicParsing).Content | ConvertFrom-Json).object.sha
+          $response = Invoke-WebRequest -uri https://api.github.com/repos/infraweavers/gobuildtest/compare/${firstCommitSha}...${lastCommitSha} -UseBasicParsing
+          echo "::set-output name=revision::$( ($response.Content | ConvertFrom-Json).total_commits )"
+
+      - id: get-minor-version
+        run: echo "::set-output name=minor::1"
+
+      - id: get-major-version
+        run: echo "::set-output name=major::0"
+
+      - id: get-version
+        run: echo "::set-output name=version::${{steps.get-major-version.outputs.major}}.${{steps.get-minor-version.outputs.minor}}.${{steps.get-revision.outputs.revision}}-${{ needs.get-commit-sha.outputs.short-sha }}"
+
+  get-commit-sha:
+
+    runs-on: ubuntu-latest
+
+    outputs:
+      short-sha: ${{ steps.short-sha.outputs.sha }}
+
+    steps:
+        
+      - id: short-sha
+        uses: benjlevesque/short-sha@v1.2
+        with:
+          length: 7
+
   build-release:
   
     strategy:
@@ -58,3 +101,25 @@ jobs:
           name: "gobuildtest-${{ matrix.os }}-${{ matrix.arch }}-Go${{ matrix.go-version }}-BIN"
           path: release/gobuildtest-${{ matrix.os }}-${{ matrix.arch }}-Go${{ matrix.go-version }}-BIN/
           if-no-files-found: error
+
+  make-release:
+
+    runs-on: ubuntu-latest
+
+    needs: [build-release, get-version-number, get-commit-sha]
+    
+    outputs:
+      release-upload-url: ${{ steps.create-release.outputs.upload_url }}
+      
+    steps:
+      - id: create-release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: actions/create-release@v1
+        with:
+          draft: true
+          prerelease: false
+          release_name: "${{needs.get-version-number.outputs.major}}.${{needs.get-version-number.outputs.minor}}.${{needs.get-version-number.outputs.revision}}"
+          tag_name: "${{needs.get-version-number.outputs.major}}.${{needs.get-version-number.outputs.minor}}.${{needs.get-version-number.outputs.revision}}-${{ needs.get-commit-sha.outputs.short-sha }}"
+          
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
