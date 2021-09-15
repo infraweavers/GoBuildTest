@@ -43,7 +43,7 @@ jobs:
           
           suffix=$([ "$os" == "windows" ] && echo ".exe" || echo "")
           mkdir -p ./release/gobuildtest-${{ matrix.os }}-${{ matrix.arch }}-Go${{ matrix.go-version }}-BIN
-          cp ${{ env.SRCPATH }}/configuration.json ${{ env.SRCPATH }}/LICENSE ${{ env.SRCPATH }}/server.crt ${{ env.SRCPATH }}/server.key ${{ env.SRCPATH }}/README.md ${{ env.SRCPATH }}/cacert.pem ./release/gobuildtest-${{ matrix.os }}-${{ matrix.arch }}-Go${{ matrix.go-version }}-BIN/.
+          cp ${{ env.SRCPATH }}/README.md ./release/gobuildtest-${{ matrix.os }}-${{ matrix.arch }}-Go${{ matrix.go-version }}-BIN/.
           
           pushd ${{ env.SRCPATH }}
           
