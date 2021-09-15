@@ -1,9 +1,7 @@
 package main
 
-import (
-	"internal/httpserver"
-)
+import "gobuildtest/internal/robtest"
 
 func main() {
-	 httpserver.Launch()
+	robtest.Launch()
 }
