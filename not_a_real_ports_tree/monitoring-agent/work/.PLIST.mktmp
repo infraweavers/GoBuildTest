@@ -1,0 +1,8 @@
+/usr/local/share/licenses/monitoring_agent-1_1/catalog.mk
+/usr/local/share/licenses/monitoring_agent-1_1/LICENSE
+/usr/local/share/licenses/monitoring_agent-1_1/APACHE20
+bin/monitoring_agent
+
+@owner
+@group
+@mode

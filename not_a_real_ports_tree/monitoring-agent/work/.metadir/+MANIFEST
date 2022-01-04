@@ -1,0 +1,15 @@
+name: "monitoring_agent"
+version: "1_1"
+origin: net-mgmt/monitoring-agent
+comment: <<EOD
+Monitoring Agent
+EOD
+maintainer: infrastructure@codeweavers.net
+prefix: /usr/local
+categories: [ net-mgmt, ]
+licenselogic: single
+licenses: [ APACHE20, ]
+deps: { 
+}
+options: {
+}
