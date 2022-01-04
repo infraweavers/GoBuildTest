@@ -24,6 +24,8 @@ SUB_LIST=	PORTNAME=${PORTNAME}
 do-install:
 		${MKDIR} ${WRKSRC}
 		${MKDIR} ${STAGEDIR}${PREFIX}/bin
+
+		wget https://github.com/infraweavers/monitoring-agent/releases/download/0.1.757/monitoring-agent-freebsd-amd64-Go1.17.x-0.1.757-16a8167-BIN.tar.gz
 		cp files/usr/local/bin/monitoring-agent ${WRKSRC}/monitoring_agent
 		${INSTALL_PROGRAM} ${WRKSRC}/monitoring_agent ${STAGEDIR}${PREFIX}/bin/monitoring_agent
 		#${INSTALL} ${WRKSRC}/monitoring_agent ${STAGEDIR}${PREFIX}/bin/monitoring_agent
